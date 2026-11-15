@@ -1243,6 +1243,42 @@
         "RemoteSha": "1.4.8"
       }
     },
+    "httr2": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "httr2",
+        "Title": "Perform HTTP Requests and Process the Responses",
+        "Version": "1.3.0",
+        "Authors@R": "c(\n    person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = c(\"aut\", \"cre\")),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")),\n    person(\"Maximilian\", \"Girlich\", role = \"ctb\")\n  )",
+        "Description": "Tools for creating and modifying HTTP requests, then\n    performing them and processing the results. 'httr2' is a modern\n    re-imagining of 'httr' that uses a pipe-based interface and solves\n    more of the problems that API wrapping packages face.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://httr2.r-lib.org, https://github.com/r-lib/httr2",
+        "BugReports": "https://github.com/r-lib/httr2/issues",
+        "Depends": "R (>= 4.1)",
+        "Imports": "cli (>= 3.0.0), curl (>= 6.4.0), glue, lifecycle, magrittr,\nopenssl, R6, rlang (>= 1.3.0), vctrs (>= 0.6.3), withr",
+        "Suggests": "askpass, bench, clipr, covr, digest, docopt, httpuv, jose,\njsonlite, knitr, later (>= 1.4.0), nanonext, otel (>= 0.2.0),\notelsdk (>= 0.2.0), paws.common (>= 0.8.0), promises, rappdirs,\nrmarkdown, testthat (>= 3.1.8), tibble, webfakes (>= 1.4.0),\nxml2",
+        "VignetteBuilder": "knitr",
+        "Config/Needs/website": "tidyverse/tidytemplate",
+        "Config/roxygen2/version": "8.0.0",
+        "Config/testthat/edition": "3",
+        "Config/testthat/parallel": "true",
+        "Config/testthat/start-first": "resp-stream, req-perform",
+        "Encoding": "UTF-8",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-07-13 19:55:02 UTC; hadleywickham",
+        "Author": "Hadley Wickham [aut, cre],\n  Posit Software, PBC [cph, fnd],\n  Maximilian Girlich [ctb]",
+        "Maintainer": "Hadley Wickham <hadley@posit.co>",
+        "Repository": "CRAN",
+        "Date/Publication": "2026-07-13 21:50:06 UTC",
+        "Built": "R 4.5.3; ; 2026-09-16 00:39:23 UTC; windows",
+        "RemoteType": "standard",
+        "RemotePkgRef": "httr2",
+        "RemoteRef": "httr2",
+        "RemoteRepos": "https://cran.rstudio.com",
+        "RemoteSha": "1.3.0"
+      }
+    },
     "isoband": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -1276,6 +1312,35 @@
         "RemoteRef": "isoband",
         "RemoteRepos": "https://cran.rstudio.com",
         "RemoteSha": "0.2.7"
+      }
+    },
+    "jpeg": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "jpeg",
+        "Version": "0.1-11",
+        "Title": "Read and write JPEG images",
+        "Author": "Simon Urbanek [aut, cre, cph] (https://urbanek.org,\n    <https://orcid.org/0000-0003-2297-1732>)",
+        "Authors@R": "person(\"Simon\", \"Urbanek\", role=c(\"aut\",\"cre\",\"cph\"), email=\"Simon.Urbanek@r-project.org\", comment=c(\"https://urbanek.org\", ORCID=\"0000-0003-2297-1732\"))",
+        "Maintainer": "Simon Urbanek <Simon.Urbanek@r-project.org>",
+        "Depends": "R (>= 2.9.0)",
+        "Description": "This package provides an easy and simple way to read, write and display bitmap images stored in the JPEG format. It can read and write both files and in-memory raw vectors.",
+        "License": "GPL-2 | GPL-3",
+        "SystemRequirements": "libjpeg",
+        "URL": "https://www.rforge.net/jpeg/",
+        "BugReports": "https://github.com/s-u/jpeg/issues",
+        "NeedsCompilation": "yes",
+        "Packaged": "2025-03-21 03:05:05 UTC; rforge",
+        "Repository": "CRAN",
+        "Date/Publication": "2025-03-21 15:37:18 UTC",
+        "Built": "R 4.5.2; x86_64-w64-mingw32; 2025-11-01 00:32:50 UTC; windows",
+        "Archs": "x64",
+        "RemoteType": "standard",
+        "RemotePkgRef": "jpeg",
+        "RemoteRef": "jpeg",
+        "RemoteRepos": "https://cran.rstudio.com",
+        "RemoteSha": "0.1-11"
       }
     },
     "jquerylib": {
@@ -1829,6 +1894,35 @@
         "RemoteRef": "plotly",
         "RemoteRepos": "https://cran.rstudio.com",
         "RemoteSha": "4.12.1"
+      }
+    },
+    "png": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "png",
+        "Version": "0.1-9",
+        "Title": "Read and write PNG images",
+        "Author": "Simon Urbanek [aut, cre, cph] (https://urbanek.nz, ORCID:\n    <https://orcid.org/0000-0003-2297-1732>)",
+        "Authors@R": "person(\"Simon\", \"Urbanek\", role=c(\"aut\",\"cre\",\"cph\"), email=\"Simon.Urbanek@r-project.org\", comment=c(\"https://urbanek.nz\", ORCID=\"0000-0003-2297-1732\"))",
+        "Maintainer": "Simon Urbanek <Simon.Urbanek@r-project.org>",
+        "Depends": "R (>= 2.9.0)",
+        "Description": "This package provides an easy and simple way to read, write and display bitmap images stored in the PNG format. It can read and write both files and in-memory raw vectors.",
+        "License": "GPL-2 | GPL-3",
+        "SystemRequirements": "libpng",
+        "URL": "https://www.rforge.net/png/",
+        "BugReports": "https://github.com/s-u/png/issues/",
+        "NeedsCompilation": "yes",
+        "Packaged": "2026-03-15 03:28:25 UTC; rforge",
+        "Repository": "CRAN",
+        "Date/Publication": "2026-03-15 16:50:02 UTC",
+        "Built": "R 4.5.3; x86_64-w64-mingw32; 2026-03-18 00:52:13 UTC; windows",
+        "Archs": "x64",
+        "RemoteType": "standard",
+        "RemotePkgRef": "png",
+        "RemoteRef": "png",
+        "RemoteRepos": "https://cran.rstudio.com",
+        "RemoteSha": "0.1-9"
       }
     },
     "promises": {
@@ -2901,38 +2995,83 @@
     }
   },
   "files": {
-    "DEPLOIEMENT.md": {
-      "checksum": "d586099b63f5b2b1dbe71698597937f2"
+    "data/prisme_extrait.rds": {
+      "checksum": "29320a6659a068feb0f163eaa97c3a38"
     },
     "index.Rmd": {
-      "checksum": "5b701e90ecb3465e3b359b36eb40026e"
+      "checksum": "5e4db7763f0dae1a5f31c2ce0bc70e05"
     },
-    "R/donnees.R": {
-      "checksum": "d5b1e5572cd8e253d49ee7721800529d"
+    "R/00_theme.R": {
+      "checksum": "0600c303a57cee3d7c1c1b3927655be4"
     },
-    "R/exports.R": {
-      "checksum": "e222e7bbcff0cbf113acc49a700ba217"
+    "R/01_donnees.R": {
+      "checksum": "eb70a771655d4858519efcce515b4d60"
+    },
+    "R/02_commentaires_prisme.R": {
+      "checksum": "840d1d2a9edbae3ff7af91112d1805c8"
+    },
+    "R/03_commentaires_ia.R": {
+      "checksum": "7562c4d2c61a23beff7e4626a15f2d2a"
+    },
+    "R/04_word_commun.R": {
+      "checksum": "3a021b70fa2137c63cf98a436d8937d4"
+    },
+    "R/05_rapport_complet.R": {
+      "checksum": "cc10848bb5a5d316cac2d3def56788f7"
+    },
+    "R/06_fiche_word.R": {
+      "checksum": "fac5253705727b59c845fb0fce296657"
+    },
+    "R/07_graphiques.R": {
+      "checksum": "4ade17e8783bc9356fbc6e5883b84ac6"
+    },
+    "rapport/contenu_annexes.md": {
+      "checksum": "815119d8b1bae849ad20c8a216a7281e"
+    },
+    "rapport/contenu_corps.md": {
+      "checksum": "b6b0c3735ebffac4ea437ba08cec1024"
+    },
+    "rapport/contenu_preliminaires.md": {
+      "checksum": "710010dd5a773119de1cf54a79d45753"
+    },
+    "rapport/images/annexeA_organigramme.png": {
+      "checksum": "d456d51ef799f6427f91ae3a88252d85"
+    },
+    "rapport/images/annexeB_programme.png": {
+      "checksum": "b6d5dee9c297bb090b55f0ab91a484c5"
+    },
+    "rapport/images/annexeC_photo1.jpg": {
+      "checksum": "95b6950d16d632a6ba093815478fc892"
+    },
+    "rapport/images/annexeC_photo2.jpg": {
+      "checksum": "30aca7887ed7d2fa71a3535333ed486d"
+    },
+    "rapport/images/figure2_tableau_de_bord.png": {
+      "checksum": "65d0fb1f8fc4c1628792ba6330e54ef3"
+    },
+    "rapport/images/graphique1_kaldor.png": {
+      "checksum": "bd37070a29a2db093e30cbd45d9c9f93"
+    },
+    "rapport/images/logo_beac.png": {
+      "checksum": "3676c42c1608906ff5fd55553598b180"
+    },
+    "rapport/images/logo_issea.png": {
+      "checksum": "fc4d3a325b9e094ac53c6e5997e00be6"
     },
     "README.md": {
-      "checksum": "f6687308c117a9ed2df1bf59cb7cfa31"
+      "checksum": "2de7c7ab39a41379eaf10db3d8110cee"
     },
-    "www/img/favicon.png": {
-      "checksum": "5f6aba426fa804e68bf7ec49d095d8e6"
+    "tools/extraire_donnees_prisme.R": {
+      "checksum": "368d8829c881611a3a153fa0b6b37fcc"
     },
-    "www/img/prisme_comparaison.png": {
-      "checksum": "ade20245a42dafcac539b030ed83429e"
+    "www/favicon.png": {
+      "checksum": "b43c422b83ee4dcef3bc7d454ed4e5ce"
     },
-    "www/img/prisme_kaldor.png": {
-      "checksum": "80485e5f05b9e47e92df4ebef18bd7f1"
-    },
-    "www/img/prisme_tableau_de_bord.png": {
-      "checksum": "84e857630e250a83a1a049cce279cda3"
-    },
-    "www/Rapport_stage_NOUMEN_version_publique.pdf": {
-      "checksum": "bbf09853fb90738e7c93a51f4df96366"
+    "www/logo_beac.png": {
+      "checksum": "3676c42c1608906ff5fd55553598b180"
     },
     "www/style.css": {
-      "checksum": "16019e5a17d162fb95cc9bf9406f24c6"
+      "checksum": "548aac56e6c82af18c0acbe790d0b3e0"
     }
   },
   "users": null

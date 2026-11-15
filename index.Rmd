@@ -1,609 +1,370 @@
 ---
-title: "PRISME · Rapport de stage BEAC 2026"
+title: "PRISME · Diagnostic macroéconomique CEMAC"
 output:
   flexdashboard::flex_dashboard:
     orientation: rows
     vertical_layout: fill
+    favicon: www/favicon.png
+    css: www/style.css
+    mathjax: null
     theme:
       version: 4
-      bootswatch: flatly
+      bg: "#F4F6F9"
+      fg: "#1B2A41"
       primary: "#0B2545"
       navbar-bg: "#0B2545"
-    css: www/style.css
-    favicon: www/img/favicon.png
+      base_font: "Segoe UI, Source Sans 3, Roboto, Helvetica Neue, Arial, sans-serif"
+      heading_font: "Cambria, Georgia, serif"
 runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
-# Dashboard DATAVIZ — présentation du rapport de stage de NOUMEN DJOFANG Yvan Rayan
-# (ISSEA, AS3) : « Conception d'un outil de diagnostic macroéconomique et de suivi
-# des alertes pour les pays de la CEMAC » — stage BEAC / DERSRI, août–sept. 2026.
-#
-# Packages : flexdashboard (structure) · shiny (interactivité) · ggplot2 + plotly
-# (graphiques à l'écran) · flextable (tableaux) · officer + mschart (exports Office).
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+# Tableau de bord du rapport de stage (cours DATAVIZ) — voir README.md
 library(flexdashboard)
 library(shiny)
-library(dplyr)
-library(tidyr)
-library(ggplot2)
 library(plotly)
-library(flextable)
-library(officer)
-library(mschart)
+for (f in sort(list.files("R", pattern = "\\.R$", full.names = TRUE))) source(f, encoding = "UTF-8")
 
-source("R/donnees.R", encoding = "UTF-8")
-source("R/exports.R", encoding = "UTF-8")
-
-base <- construire_base(seed = 2026)
-trimestres <- sort(unique(base$date))
-lib_trim <- setNames(as.character(trimestres), libelle_trim(trimestres))
-choix_ind <- setNames(referentiel$id, referentiel$indicateur)
-choix_pays <- c("CEMAC", pays_cemac)
-PDF_RAPPORT <- "www/Rapport_stage_NOUMEN_version_publique.pdf"
-
-img64 <- function(f, alt = "", style = "width:100%;") {
-  tags$img(src = knitr::image_uri(f), alt = alt, style = style)
-}
-set_flextable_defaults(font.family = "Arial", font.size = 10, padding = 4)
-theme_dash <- theme_minimal(base_size = 12) +
-  theme(plot.title = element_text(face = "bold", colour = pal$navy),
-        panel.grid.minor = element_blank(), legend.position = "bottom")
+choix_entites <- c(setNames(VUE_REGIONALE, "Zone CEMAC (consolidé)"), setNames(PAYS_CEMAC, PAYS_CEMAC))
+JS_NAVIGATION <- tags$script(HTML("
+  // Ouvre une page du tableau de bord en cliquant son lien de navigation.
+  window.allerPage = function(id) {
+    id = id.replace('#', '');
+    var liens = document.querySelectorAll('.navbar a');
+    for (var k = 0; k < liens.length; k++) {
+      var h = liens[k].getAttribute('href') || '';
+      if (h === '#' + id || h === '#section-' + id) { liens[k].click(); return; }
+    }
+    window.location.hash = id;
+  };
+  (function enregistrer() {
+    if (window.Shiny && Shiny.addCustomMessageHandler) {
+      Shiny.addCustomMessageHandler('allerPage', function(h) { allerPage(h); });
+    } else { setTimeout(enregistrer, 200); }
+  })();"))
+choix_indicateurs <- lapply(split(IND, factor(IND$secteur, levels = PILIERS)), function(x) setNames(x$id, x$nom))
 ```
 
-Accueil {data-icon="fa-home"}
-=====================================================================
+Accueil {data-icon="fa-house"}
+=====================================
 
-Row {data-height=130}
----------------------------------------------------------------------
+Row {data-height=170}
+-----------------------------------------------------------------------
 
-### Durée du stage
+### {.no-title}
+
 ```{r}
-valueBox("8 semaines", caption = "3 août – 25 septembre 2026 · BEAC, Yaoundé",
-         icon = "fa-calendar", color = pal$navy)
+# Script : clic sur la carte ou une barre -> ouverture de la page Indicateurs
+tagList(
+  JS_NAVIGATION,
+  div(class = "accueil-titre",
+    tags$img(src = "www/logo_beac.png", alt = "BEAC", height = "62px"),
+    div(h1("Outil de diagnostic macroéconomique et de suivi des alertes"),
+        p("Rapport de stage · BEAC, DERSRI · août – septembre 2026 · application PRISME"))))
 ```
 
-### Piliers du diagnostic
-```{r}
-valueBox(4, caption = "Réel · Finances publiques · Monétaire · Extérieur",
-         icon = "fa-columns", color = "#13315C")
-```
+Row {data-height=170}
+-----------------------------------------------------------------------
 
 ### Indicateurs suivis
+
 ```{r}
-valueBox(16, caption = "avec règles Sain / Vigilance / Alerte", icon = "fa-tachometer",
-         color = "#1F4E79")
+valueBox(nrow(IND), caption = "indicateurs macroéconomiques", icon = "fa-gauge-high", color = NAVY)
 ```
 
-### Pays couverts
+### Piliers
+
 ```{r}
-valueBox(6, caption = "Cameroun, RCA, Congo, Gabon, Guinée éq., Tchad",
-         icon = "fa-globe", color = pal$or)
+valueBox(length(PILIERS), caption = "piliers : réel, finances publiques, monétaire, extérieur", icon = "fa-layer-group", color = "#13315C")
+```
+
+### Pays
+
+```{r}
+valueBox(length(PAYS_CEMAC), caption = "pays de la CEMAC + vue régionale", icon = "fa-earth-africa", color = "#1D4E89")
+```
+
+### Modèles de prévision
+
+```{r}
+valueBox(15, caption = "modèles de prévision dans PRISME", icon = "fa-chart-line", color = "#2A6F97")
 ```
 
 Row
----------------------------------------------------------------------
+-----------------------------------------------------------------------
 
-### Le projet en bref {data-width=640}
-
-<div class="lead-card">
-
-**Thème —** *Conception d'un outil de diagnostic macroéconomique et de suivi des alertes pour les pays de la CEMAC.*
-
-**Auteur —** NOUMEN DJOFANG Yvan Rayan, élève Analyste Statisticien (3^e^ année), ISSEA.<br>
-**Structure d'accueil —** Banque des États de l'Afrique Centrale (BEAC), Direction des Études, de la Recherche, des Statistiques et des Relations Internationales (DERSRI).<br>
-**Encadreur professionnel —** M. Emile Thierry MVONDO, premier adjoint au directeur de la DERSRI.
-
-**Le problème.** À la DERSRI, le diagnostic macroéconomique reposait sur de nombreuses feuilles Excel : retrouver, rapprocher et comparer les indicateurs demandait des manipulations répétées, avec un risque sur les versions, les unités et les périodes.
-
-**La question centrale.** *Comment centraliser la lecture des indicateurs macroéconomiques des pays de la CEMAC, apprécier leurs évolutions et signaler les situations de vigilance ou d'alerte, tout en assurant la traçabilité des traitements et la maîtrise des accès ?*
-
-**La réponse : PRISME**, une application **R Shiny + SQLite** : 16 indicateurs en 4 piliers, vue pays et vue CEMAC, moteur d'alertes à seuils paramétrables, carré de Kaldor, comparaison entre pays, circuit de validation des données, gestion des droits, assistant **Iris** et exports PDF/Word.
-
-**Résultat.** Une plateforme fonctionnelle, présentée à l'encadreur et remise en fin de stage. Les démonstrations reposent sur des **données synthétiques** : elles ne permettent aucune conclusion sur la situation réelle des économies de la CEMAC.
-
-</div>
-
-### Télécharger le rapport {data-width=360}
+### Le rapport de stage {data-width=380}
 
 ```{r}
-div(class = "download-card",
-  h4("Rapport de stage (PDF)"),
-  p("Version publique du rapport : 49 pages. L'organigramme nominatif (annexe A) et",
-    "les photographies (annexe C) ont été retirés pour la mise en ligne."),
-  downloadButton("dl_pdf_accueil", "Télécharger le rapport", class = "btn-primary btn-lg"),
-  hr(),
-  h5("Naviguer dans ce dashboard"),
-  tags$ul(
-    tags$li(tags$b("Le stage"), " : structure d'accueil et chronologie"),
-    tags$li(tags$b("Cadre du diagnostic"), " : indicateurs, seuils, simulateur de règle"),
-    tags$li(tags$b("PRISME"), " : architecture, démarche GIMSI, fonctionnalités"),
-    tags$li(tags$b("Démonstration"), " : tableau de bord interactif (données fictives)"),
-    tags$li(tags$b("Bilan"), " : apports, limites, recommandations"),
-    tags$li(tags$b("Exports"), " : synthèse Word / PowerPoint à la demande")
-  )
-)
-output$dl_pdf_accueil <- downloadHandler(
-  filename = function() "Rapport_stage_NOUMEN_PRISME.pdf",
-  content  = function(file) file.copy(PDF_RAPPORT, file),
-  contentType = "application/pdf")
+div(class = "carte-telechargement",
+    icon("file-word", class = "fa-3x"),
+    h3("Rapport de stage complet"),
+    p(class = "discret", "Word · graphiques Word natifs (mschart), modifiables"),
+    downloadButton("dl_rapport_accueil", "Télécharger le rapport", class = "btn-primary btn-lg"),
+    p(class = "discret petit", "À l’ouverture, Word propose de mettre à jour les champs : répondre Oui pour remplir le sommaire."))
 ```
 
-Le stage {data-icon="fa-university"}
-=====================================================================
-
-Row {data-height=560}
----------------------------------------------------------------------
-
-### Chronologie du stage (programme communiqué par la DERSRI)
+### Situation actuelle des six pays · cliquer sur une barre pour ouvrir le pays
 
 ```{r}
-etapes <- tibble::tribble(
-  ~etape,                                      ~debut,        ~fin,          ~type,
-  "Accueil, visite de la DERSRI, affectation", "2026-08-03", "2026-08-04", "Accueil",
-  "Pôle Recherche (simulations, budget, coopération)", "2026-08-03", "2026-08-14", "Immersion",
-  "Pôle Statistiques (BdP, monétaire, prévisions)",   "2026-08-17", "2026-08-21", "Immersion",
-  "Pôle Études (conjonctures, sectoriel, finances publiques)", "2026-08-24", "2026-08-28", "Immersion",
-  "Finalisation des travaux et rédaction",     "2026-08-31", "2026-09-11", "Production",
-  "Fin de la période administrative",          "2026-09-14", "2026-09-25", "Clôture"
-) %>% mutate(debut = as.Date(debut), fin = as.Date(fin) + 1,
-             etape = factor(etape, levels = rev(etape)))
-col_type <- c(Accueil = pal$or, Immersion = "#1F4E79", Production = pal$sain, Clôture = pal$gris)
-
-g <- ggplot(etapes) +
-  geom_segment(aes(x = debut, xend = fin, y = etape, yend = etape, colour = type,
-                   text = paste0(etape, "<br>", format(debut, "%d %b"), " → ",
-                                 format(fin - 1, "%d %b %Y"))),
-               linewidth = 9, lineend = "butt") +
-  scale_colour_manual(values = col_type, name = NULL) +
-  scale_x_date(date_breaks = "1 week",
-               labels = function(d) paste(format(d, "%d"), c("janv.", "févr.", "mars", "avr.", "mai", "juin",
-                 "juil.", "août", "sept.", "oct.", "nov.", "déc.")[as.integer(format(d, "%m"))])) +
-  labs(x = NULL, y = NULL) + theme_dash +
-  theme(panel.grid.major.y = element_blank())
-renderPlotly(ggplotly(g, tooltip = "text") %>%
-  layout(legend = list(orientation = "h", y = -0.15)) %>% config(displayModeBar = FALSE))
+plotlyOutput("statuts_accueil", height = "100%")
 ```
 
-### La structure d'accueil {data-width=380}
+Vue CEMAC {#vue-cemac data-icon="fa-map"}
+=====================================
 
-**La BEAC** est la banque centrale commune des six États de la CEMAC. Créée en 1972, avec son siège à Yaoundé, elle conduit la politique monétaire et la politique de change, gère les réserves, émet la monnaie et veille au bon fonctionnement des paiements et à la stabilité financière.
+Row {data-height=90}
+-----------------------------------------------------------------------
 
-**La DERSRI** est rattachée à la Direction générale des Études, Finances et Relations internationales (DGEFRI). Elle couvre la conjoncture, la recherche, la production statistique, les études sectorielles et les relations économiques et financières.
+### {.no-title}
 
-**Encadrement.** Accueil par le directeur, M. Evrard Ulrich Herménégilde MOUNKALA. Encadrement professionnel par M. Emile Thierry MVONDO, premier adjoint au directeur.
+```{r}
+div(class = "barre-annee",
+    sliderInput("annee_vue", NULL, min = ANNEES[1], max = ANNEES[2], value = ANNEES[2], step = 1, sep = "",
+                width = "100%", animate = animationOptions(interval = 1400)),
+    span(class = "discret", "▶ pour voir l’évolution des alertes année par année"))
+```
 
 Row
----------------------------------------------------------------------
+-----------------------------------------------------------------------
 
-### Naissance du thème
-L'encadreur a signalé le caractère fastidieux d'un diagnostic dispersé dans **de nombreux classeurs Excel**. Il a remis une **note de cadrage** (les 4 piliers) et une **trame Excel** (indicateurs, historiques, seuils). C'est le point de départ de PRISME.
-
-### Difficultés rencontrées
-- Disponibilité limitée des cadres, souvent en mission, d'où un travail en autonomie.
-- **Pas d'accès aux séries opérationnelles** pendant le stage, d'où le recours à des données synthétiques.
-- **Génération des rapports PDF** (LaTeX) : tableaux trop larges, figures, mise en page.
-
-### Issue du stage
-Une version fonctionnelle de PRISME a été **présentée et remise** à l'encadreur. Celui-ci a évoqué une présentation possible à la **DGEFRI** et une installation éventuelle sur un serveur de la Banque. Aucune mise en production n'avait eu lieu au terme du stage.
-
-Cadre du diagnostic {data-icon="fa-sliders" data-orientation=columns}
-=====================================================================
-
-Column {data-width=560}
----------------------------------------------------------------------
-
-### Référentiel des 16 indicateurs et seuils indicatifs du prototype
+### Indicateurs en alerte par pays · cliquer sur un pays {data-width=420}
 
 ```{r}
-ft_ref <- referentiel %>%
-  transmute(Secteur = as.character(secteur), Indicateur = indicateur, Unité = unite,
-            `Type de règle` = type_regle, `Seuil d'alerte indicatif` = libelle_seuil) %>%
-  flextable() %>%
-  merge_v(j = "Secteur") %>% theme_vanilla() %>%
-  bg(part = "header", bg = pal$navy) %>% color(part = "header", color = "white") %>%
-  bold(j = "Secteur") %>% valign(j = "Secteur", valign = "top") %>%
-  fontsize(size = 10, part = "all") %>%
-  add_footer_lines("Source : rapport de stage, tableau 1 et annexe D. Seuils du prototype, non homologués par la BEAC.") %>%
-  italic(part = "footer") %>% fontsize(part = "footer", size = 9) %>% autofit()
-for (s in names(couleurs_secteur)) {
-  i <- which(referentiel$secteur == s)
-  ft_ref <- color(ft_ref, i = i, j = "Secteur", color = couleurs_secteur[[s]])
+plotlyOutput("carte", height = "100%")
+```
+
+### Statut des 16 indicateurs (survoler une case)
+
+```{r}
+plotlyOutput("grille", height = "100%")
+```
+
+Indicateurs {#indicateurs data-icon="fa-chart-line"}
+=====================================
+
+Sidebar {.sidebar data-width=270}
+-----------------------------------------------------------------------
+
+```{r}
+selectInput("ind_entite", "Périmètre", choices = choix_entites, selected = "Cameroun")
+selectInput("ind_id", "Indicateur", choices = choix_indicateurs, selected = "inflation")
+sliderInput("ind_annees", "Période", min = ANNEES[1], max = ANNEES[2], value = c(ANNEES[2] - 5, ANNEES[2]),
+            step = 1, sep = "")
+uiOutput("etat_ia")
+```
+
+Row {data-height=150}
+-----------------------------------------------------------------------
+
+### Dernière valeur
+
+```{r}
+renderValueBox({
+  f <- faits_indicateur(input$ind_entite, input$ind_id, fin_annee(input$ind_annees[2]))
+  valueBox(formater_valeur(f$valeur, f$ind$unite),
+           caption = paste("Dernière valeur ·", if (is.na(f$date)) "n.d." else formater_mois(f$date)),
+           icon = "fa-hashtag", color = NAVY)
+})
+```
+
+### Statut
+
+```{r}
+renderValueBox({
+  f <- faits_indicateur(input$ind_entite, input$ind_id, fin_annee(input$ind_annees[2]))
+  valueBox(f$statut, caption = if (is.na(f$variation)) "Statut PRISME" else
+             paste0("Sur 12 mois : ", ifelse(f$variation >= 0, "+", ""), formater_nombre(f$variation, 1)),
+           icon = c(Sain = "fa-circle-check", Vigilance = "fa-triangle-exclamation", Alerte = "fa-bell", "n.d." = "fa-circle-question")[[f$statut]],
+           color = couleur_statut(f$statut))
+})
+```
+
+### Seuil d'alerte
+
+```{r}
+renderValueBox({
+  i <- ind_info(input$ind_id)
+  valueBox(i$description_seuil, caption = paste("Pilier", i$secteur), icon = "fa-ruler-horizontal", color = "#5B6B82")
+})
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Évolution · bande rouge = alerte, bande orange = vigilance, points = valeurs observées {data-width=650}
+
+```{r}
+renderPlotly(graphe_indicateur(input$ind_entite, input$ind_id, input$ind_annees))
+```
+
+### Commentaire {data-width=350}
+
+```{r}
+uiOutput("commentaire")
+```
+
+Kaldor {#kaldor data-icon="fa-diamond"}
+=====================================
+
+Sidebar {.sidebar data-width=270}
+-----------------------------------------------------------------------
+
+```{r}
+selectizeInput("k_entites", "Pays (1 à 3)", choices = choix_entites, selected = c("Cameroun", "Gabon"),
+               multiple = TRUE, options = list(maxItems = 3))
+sliderInput("k_annee", "Année", min = ANNEES[1], max = ANNEES[2], value = ANNEES[2], step = 1, sep = "",
+            animate = animationOptions(interval = 1500))
+div(class = "aide-kaldor",
+    p(strong("Plus la surface est grande, meilleure est la situation.")),
+    p("Cercle rouge : limite d’alerte. Un sommet à l’intérieur = indicateur au-delà du seuil."),
+    p("Couleur des points = statut de l’indicateur."))
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Carré de Kaldor · croissance, inflation, emploi, solde extérieur
+
+```{r}
+renderPlotly({
+  validate(need(length(input$k_entites) >= 1, "Choisir au moins un pays."))
+  graphe_kaldor(input$k_entites, input$k_annee)
+})
+```
+
+Comparaison {#comparaison data-icon="fa-scale-balanced"}
+=====================================
+
+Sidebar {.sidebar data-width=270}
+-----------------------------------------------------------------------
+
+```{r}
+selectInput("c_id", "Indicateur", choices = choix_indicateurs, selected = "dette_publique")
+checkboxGroupInput("c_entites", "Pays (2 à 3)", choices = choix_entites, selected = c("Cameroun", "Congo", "Tchad"))
+sliderInput("c_annees", "Période", min = ANNEES[1], max = ANNEES[2], value = c(ANNEES[1], ANNEES[2]), step = 1, sep = "")
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Trajectoires · ligne rouge = seuil d'alerte {data-width=620}
+
+```{r}
+renderPlotly({
+  validate(need(length(input$c_entites) %in% 2:3, "Cocher 2 ou 3 pays."))
+  graphe_comparaison(input$c_entites, input$c_id, input$c_annees)
+})
+```
+
+### Dernière valeur face au seuil
+
+```{r}
+renderPlotly({
+  validate(need(length(input$c_entites) %in% 2:3, "Cocher 2 ou 3 pays."))
+  graphe_barres_derniere(input$c_entites, input$c_id, input$c_annees)
+})
+```
+
+Exports {#exports data-icon="fa-file-word"}
+=====================================
+
+Row
+-----------------------------------------------------------------------
+
+### Rapport de stage complet
+
+```{r}
+div(class = "carte-telechargement",
+    icon("book", class = "fa-3x"),
+    h3("Rapport de stage"),
+    p(class = "discret", "Le rapport intégral au format Word, avec ses tableaux (flextable) et un graphique Word natif (mschart)."),
+    downloadButton("dl_rapport", "Télécharger (.docx)", class = "btn-primary btn-lg"))
+```
+
+### Fiche indicateurs personnalisée
+
+```{r}
+div(class = "carte-fiche",
+    fluidRow(
+      column(6, selectInput("f_entite", "Périmètre", choices = choix_entites, selected = "Gabon"),
+                sliderInput("f_annees", "Période", min = ANNEES[1], max = ANNEES[2], value = c(ANNEES[2] - 5, ANNEES[2]),
+                            step = 1, sep = "")),
+      column(6, checkboxGroupInput("f_piliers", "Piliers", choices = PILIERS, selected = PILIERS),
+                checkboxInput("f_ia", "Commentaires rédigés par l’IA (repli automatique sur PRISME)", value = TRUE))),
+    downloadButton("dl_fiche", "Générer la fiche Word", class = "btn-primary btn-lg"),
+    p(class = "discret petit", "Un graphique Word natif (mschart) par indicateur, modifiable : clic droit > Modifier les données."))
+```
+
+```{r serveur, context="server"}
+# --- Accueil : statuts actuels par pays ---------------------------------------
+output$statuts_accueil <- renderPlotly({
+  g <- grille_statuts()
+  n <- as.data.frame(table(entite = g$entite, statut = factor(g$statut, levels = c("Sain", "Vigilance", "Alerte", "n.d."))))
+  n$entite <- factor(n$entite, levels = rev(PAYS_CEMAC))
+  p <- plot_ly(source = "accueil")
+  for (s in c("Sain", "Vigilance", "Alerte")) {
+    x <- n[n$statut == s, ]
+    p <- add_bars(p, data = x, y = ~entite, x = ~Freq, name = s, orientation = "h", customdata = ~as.character(entite),
+                  marker = list(color = COULEURS_STATUT[[s]]), text = ~Freq, textposition = "inside",
+                  hovertemplate = paste0("%{y} : %{x} indicateur(s) ", tolower(s), "<extra></extra>"))
+  }
+  p |> layout(barmode = "stack", xaxis = list(title = "", range = c(0, 16), dtick = 4), yaxis = list(title = ""),
+              legend = list(orientation = "h", x = 0, y = 1.12), margin = list(l = 10, r = 10, t = 10, b = 20)) |>
+    config_plotly() |> event_register("plotly_click")
+})
+observeEvent(event_data("plotly_click", source = "accueil"), {
+  e <- event_data("plotly_click", source = "accueil")$customdata
+  if (length(e) && e %in% PAYS_CEMAC) {
+    updateSelectInput(session, "ind_entite", selected = e)
+    session$sendCustomMessage("allerPage", "#indicateurs")
+  }
+})
+
+# --- Vue CEMAC -----------------------------------------------------------------
+grille_vue <- reactive(grille_statuts(PAYS_CEMAC, fin_annee(input$annee_vue)))
+output$carte <- renderPlotly(graphe_carte(grille_vue()) |> event_register("plotly_click"))
+output$grille <- renderPlotly(graphe_grille(grille_vue()))
+observeEvent(event_data("plotly_click", source = "carte"), {
+  ev <- event_data("plotly_click", source = "carte")
+  e <- if (!is.null(ev$customdata)) ev$customdata else PRISME$pays$nom[match(ev$location, PRISME$pays$iso3)]
+  if (length(e) && !is.na(e) && e %in% PAYS_CEMAC) {
+    updateSelectInput(session, "ind_entite", selected = e)
+    session$sendCustomMessage("allerPage", "#indicateurs")
+  }
+})
+
+# --- Indicateurs : commentaire IA / PRISME -------------------------------------
+output$etat_ia <- renderUI({
+  if (ia_disponible()) div(class = "etat-ia ok", icon("robot"), " IA connectée (", ia_config()$modele, ")")
+  else div(class = "etat-ia repli", icon("gears"), " Commentaires PRISME (aucune clé IA configurée)")
+})
+output$commentaire <- renderUI({
+  com <- commenter(input$ind_entite, input$ind_id, fin_annee(input$ind_annees[2]))
+  div(class = paste("bloc-commentaire", if (com$ia) "ia" else "prisme"),
+      p(com$texte),
+      div(class = "source-commentaire", icon(if (com$ia) "robot" else "gears"), " ", com$source,
+          if (!com$ia && ia_disponible() && nzchar(com$raison)) span(class = "petit", paste0(" — ", com$raison))))
+})
+
+# --- Téléchargements ----------------------------------------------------------
+fichier_rapport <- function(file) {
+  cache <- file.path(tempdir(), "rapport_stage_PRISME.docx")
+  if (!file.exists(cache)) withProgress(message = "Construction du rapport Word…", value = 0.5, generer_rapport_complet(cache))
+  file.copy(cache, file, overwrite = TRUE)
 }
-div(style = "overflow:auto; height:100%;", htmltools_value(ft_ref))
-```
+nom_rapport <- function() "Rapport_de_stage_NOUMEN_PRISME.docx"
+output$dl_rapport <- downloadHandler(filename = nom_rapport, content = fichier_rapport)
+output$dl_rapport_accueil <- downloadHandler(filename = nom_rapport, content = fichier_rapport)
 
-Column {data-width=440}
----------------------------------------------------------------------
-
-### Règle de statut (rapport, éq. 2.5)
-
-Pour un indicateur **à plafond**, avec un seuil d'alerte *s* et une marge de vigilance *m* (20 % par défaut), le statut d'une valeur *x* est :
-
-<div class="regle">
-<span class="pill sain">Sain</span> si x ≤ s − m·|s|<br>
-<span class="pill vig">Vigilance</span> si s − m·|s| &lt; x ≤ s<br>
-<span class="pill alerte">Alerte</span> si x &gt; s
-</div>
-
-Pour un indicateur **à plancher**, les inégalités sont inversées. Certains indicateurs suivent des règles particulières :
-
-- **chômage** : nombre de hausses trimestrielles consécutives ;
-- **taux directeur** : taux réel, c'est-à-dire le taux directeur moins l'inflation ;
-- **M2** : comparaison au PIB nominal augmenté de 2 points.
-
-### Simulateur de règle
-
-```{r}
-fillCol(flex = c(NA, 1),
-  fluidRow(
-    column(6, selectInput("sim_regle", "Type de règle", c("Plafond" = "plafond", "Plancher" = "plancher"))),
-    column(6, numericInput("sim_seuil", "Seuil d'alerte s", value = 3, step = 0.5)),
-    column(6, sliderInput("sim_marge", "Marge de vigilance m", 0, 0.5, 0.2, step = 0.05)),
-    column(6, numericInput("sim_x", "Valeur observée x", value = 2.7, step = 0.1))
-  ),
-  plotlyOutput("sim_plot", height = "100%")
-)
-output$sim_plot <- renderPlotly({
-  s <- input$sim_seuil; m <- input$sim_marge; x <- input$sim_x; r <- input$sim_regle
-  req(is.numeric(s), is.numeric(x))
-  b <- m * max(abs(s), 1)
-  lo <- min(s - 3 * b - 1, x - 1); hi <- max(s + 3 * b + 1, x + 1)
-  zones <- if (r == "plafond") {
-    tibble::tibble(xmin = c(lo, s - b, s), xmax = c(s - b, s, hi), statut = c("Sain", "Vigilance", "Alerte"))
-  } else {
-    tibble::tibble(xmin = c(lo, s, s + b), xmax = c(s, s + b, hi), statut = c("Alerte", "Vigilance", "Sain"))
-  }
-  st <- statut_seuil(x, r, s, NA, m)
-  g <- ggplot() +
-    geom_rect(data = zones, aes(xmin = xmin, xmax = xmax, ymin = 0, ymax = 1, fill = statut,
-                                text = paste0(statut, " : ", round(xmin, 2), " à ", round(xmax, 2))),
-              alpha = .85) +
-    geom_vline(xintercept = x, linewidth = 1.2, colour = pal$navy) +
-    annotate("text", x = x, y = 1.12, label = paste0("x = ", x, " → ", st), colour = pal$navy, fontface = "bold") +
-    scale_fill_manual(values = couleurs_statut, guide = "none") +
-    scale_y_continuous(limits = c(0, 1.2), breaks = NULL) +
-    labs(x = "Valeur de l'indicateur", y = NULL) + theme_dash
-  ggplotly(g, tooltip = "text") %>% config(displayModeBar = FALSE)
-})
-```
-
-PRISME {data-icon="fa-cubes"}
-=====================================================================
-
-Row {data-height=480}
----------------------------------------------------------------------
-
-### Chaîne fonctionnelle (rapport, figure 1)
-
-```{r}
-etapes_chaine <- tibble::tibble(
-  n = 5:1,
-  lib = c("Sources prévues : fichiers Excel/CSV, saisie, séries publiques autorisées",
-          "Contrôles de structure → lot en attente → validation administrative",
-          "Base SQLite : observations publiées, utilisateurs, seuils, traces",
-          "Moteur de statuts · agrégation CEMAC · indicateurs dérivés",
-          "Interfaces Shiny : diagnostic, Kaldor, comparaison, Iris, notifications, rapports"),
-  col = c("#5F6B7A", "#B8860B", "#1F4E79", "#0E7C7B", "#0B2545"))
-renderPlot({
-  ggplot(etapes_chaine) +
-    geom_segment(data = etapes_chaine[-5, ], aes(x = 0, xend = 0, y = n - .28, yend = n - .72),
-                 arrow = arrow(length = unit(.18, "cm"), type = "closed"), colour = pal$gris) +
-    geom_label(aes(x = 0, y = n, label = lib, fill = col), colour = "white", size = 4.2,
-               label.padding = unit(.55, "lines"), label.r = unit(.25, "lines"), fontface = "bold") +
-    scale_fill_identity() + xlim(-1, 1) + ylim(.6, 5.4) + theme_void()
-})
-```
-
-### Démarche GIMSI adaptée au projet (rapport, tableau 3)
-
-```{r}
-gimsi <- tibble::tribble(
-  ~`Phase GIMSI`, ~`Application à PRISME`,
-  "Identification", "Échanges avec M. MVONDO, analyse du travail sur de nombreux fichiers Excel, définition des utilisateurs visés.",
-  "Conception", "Exploitation de la note et de la trame, choix des indicateurs, des seuils, des filtres et des vues.",
-  "Mise en œuvre", "Programmation sous R Shiny, structuration SQLite, alertes, accès et restitutions.",
-  "Amélioration permanente", "Démonstration à l'encadreur, recueil des remarques, ajustements avant tout déploiement.")
-ft_g <- flextable(gimsi) %>% theme_vanilla() %>%
-  bg(part = "header", bg = pal$navy) %>% color(part = "header", color = "white") %>%
-  bg(j = 1, bg = "#EEF2F7", part = "body") %>% bold(j = 1) %>%
-  width(j = 1, width = 1.6) %>% width(j = 2, width = 4.6) %>% fontsize(size = 10.5, part = "all")
-div(style = "overflow:auto;", htmltools_value(ft_g))
-```
-
-Row {data-height=520}
----------------------------------------------------------------------
-
-### Fonctionnalités réalisées (rapport, tableau 4) {data-width=480}
-
-```{r}
-fonct <- tibble::tribble(
-  ~Fonctionnalité, ~Réalisation, ~Utilité,
-  "Diagnostic", "Référentiel de 16 indicateurs, fiches de consultation", "Lecture sectorielle",
-  "Vue CEMAC et pays", "Filtres géographiques, consolidation régionale", "Synthèse et détail",
-  "Alertes", "Calcul des statuts, notifications (cloche)", "Repérage des signaux",
-  "Données", "Import, contrôle et validation par lots", "Fiabilisation des saisies",
-  "Comparaison", "Deux ou trois économies sur un indicateur", "Lecture comparative",
-  "Assistant Iris", "Dialogue, aide contextuelle, voix (navigateur)", "Accompagnement",
-  "Accès", "Profils administrateur / lecteur, mot de passe initial", "Sécurité fonctionnelle",
-  "Rapports", "Exports PDF et Word (R Markdown)", "Restitution")
-ft_f <- flextable(fonct) %>% theme_vanilla() %>%
-  bg(part = "header", bg = pal$navy) %>% color(part = "header", color = "white") %>%
-  bold(j = 1) %>% color(j = 1, color = pal$navy) %>% fontsize(size = 10.5, part = "all") %>% autofit()
-div(style = "overflow:auto;", htmltools_value(ft_f))
-```
-
-### Captures de l'application PRISME {.tabset data-width=520}
-
-#### Tableau de bord CEMAC
-```{r}
-div(style = "overflow:auto;height:100%;",
-    img64("www/img/prisme_tableau_de_bord.png", "Tableau de bord PRISME — zone CEMAC"),
-    p(class = "caption", "Rapport, figure 2 : vue du tableau de bord de diagnostic, zone CEMAC (données synthétiques)."))
-```
-
-#### Carré de Kaldor
-```{r}
-div(style = "overflow:auto;height:100%;text-align:center;",
-    img64("www/img/prisme_kaldor.png", "Carré de Kaldor dans PRISME", "max-width:100%;max-height:85%;"),
-    p(class = "caption", "Rapport, graphique 1 : carré de Kaldor interactif."))
-```
-
-#### Comparaison inter-pays
-```{r}
-div(style = "overflow:auto;height:100%;",
-    img64("www/img/prisme_comparaison.png", "Comparaison de la croissance entre deux pays"),
-    p(class = "caption", "Rapport, graphique 2 : comparaison de la croissance du PIB réel entre deux pays."))
-```
-
-Démonstration {data-icon="fa-line-chart"}
-=====================================================================
-
-Inputs {.sidebar data-width=280}
----------------------------------------------------------------------
-
-<div class="alert-fictif">**Données fictives.** Séries synthétiques (`set.seed(2026)`) construites selon la structure du rapport. Elles ne décrivent pas les économies réelles de la CEMAC.</div>
-
-```{r}
-tagList(
-  selectInput("demo_pays", "Périmètre", choices = choix_pays, selected = "CEMAC"),
-  selectInput("demo_trim", "Trimestre", choices = rev(lib_trim), selected = tail(lib_trim, 1)),
-  selectInput("demo_ind", "Indicateur", choices = choix_ind, selected = "inflation"),
-  selectizeInput("demo_comp", "Comparer (2 à 3 pays)", choices = pays_cemac,
-                 selected = c("Cameroun", "Gabon"), multiple = TRUE, options = list(maxItems = 3))
-)
-demo_date <- reactive(as.Date(input$demo_trim))
-sel_statuts <- reactive(base %>% filter(pays == input$demo_pays, date == demo_date()))
-```
-
-Row {data-height=110}
----------------------------------------------------------------------
-
-### Sain
-```{r}
-renderValueBox(valueBox(sum(sel_statuts()$statut == "Sain"), caption = "indicateurs « Sain »",
-                        icon = "fa-check-circle", color = pal$sain))
-```
-
-### Vigilance
-```{r}
-renderValueBox(valueBox(sum(sel_statuts()$statut == "Vigilance"), caption = "indicateurs « Vigilance »",
-                        icon = "fa-exclamation-circle", color = pal$vigilance))
-```
-
-### Alerte
-```{r}
-renderValueBox(valueBox(sum(sel_statuts()$statut == "Alerte"), caption = "indicateurs « Alerte »",
-                        icon = "fa-bell", color = pal$alerte))
-```
-
-Row {.tabset}
----------------------------------------------------------------------
-
-### Carte des statuts
-
-```{r}
-renderPlotly({
-  d <- base %>% filter(date == demo_date()) %>%
-    mutate(indicateur = factor(indicateur, levels = rev(referentiel$indicateur)),
-           info = paste0("<b>", pays, "</b><br>", indicateur, " : ",
-                         formatC(valeur, format = "f", digits = 2, decimal.mark = ","), " ", unite,
-                         "<br>Statut : ", statut))
-  g <- ggplot(d, aes(pays, indicateur, fill = statut, text = info)) +
-    geom_tile(colour = "white", linewidth = 1) +
-    geom_text(aes(label = formatC(valeur, format = "f", digits = 1, decimal.mark = ",")),
-              size = 3.2, colour = ifelse(d$statut == "Vigilance", "black", "white")) +
-    scale_fill_manual(values = couleurs_statut, name = NULL, drop = FALSE) +
-    labs(x = NULL, y = NULL, title = paste("Statuts au trimestre", libelle_trim(demo_date()))) + theme_dash +
-    theme(panel.grid = element_blank(), axis.text.x = element_text(face = "bold"))
-  ggplotly(g, tooltip = "text") %>% layout(legend = list(orientation = "h", y = -0.08)) %>%
-    config(displayModeBar = FALSE)
-})
-```
-
-### Évolution de l'indicateur
-
-```{r}
-renderPlotly({
-  ind <- input$demo_ind; ref <- referentiel %>% filter(id == ind)
-  d <- base %>% filter(pays == input$demo_pays, id == ind) %>%
-    mutate(info = paste0(trimestre, " : ", formatC(valeur, format = "f", digits = 2, decimal.mark = ","),
-                         " ", unite, "<br>Statut : ", statut))
-  g <- ggplot(d, aes(date, valeur)) +
-    geom_line(colour = pal$navy, linewidth = .9) +
-    geom_point(aes(colour = statut, text = info), size = 2.6) +
-    geom_vline(xintercept = as.numeric(demo_date()), linetype = "dotted", colour = pal$gris) +
-    scale_colour_manual(values = couleurs_statut, name = NULL, drop = FALSE) +
-    labs(x = NULL, y = ref$unite,
-         title = paste0(ref$indicateur, " — ", input$demo_pays, "  (règle : ", ref$libelle_seuil, ")")) +
-    theme_dash
-  if (ref$regle %in% c("plafond", "plancher", "intervalle")) {
-    g <- g + geom_hline(yintercept = na.omit(c(ref$s1, ref$s2)), colour = pal$alerte, linetype = "dashed")
-  }
-  if (ref$regle == "m2_dynamique") {
-    g <- g + geom_line(aes(y = reference), colour = pal$alerte, linetype = "dashed")
-  }
-  if (ref$regle == "taux_reel") {
-    g <- g + geom_line(aes(y = reference), colour = pal$or) +
-      geom_hline(yintercept = 0, colour = pal$alerte, linetype = "dashed")
-  }
-  ggplotly(g, tooltip = "text") %>% layout(legend = list(orientation = "h", y = -0.12)) %>%
-    config(displayModeBar = FALSE)
-})
-```
-
-### Comparaison inter-pays
-
-```{r}
-renderPlotly({
-  req(length(input$demo_comp) >= 1)
-  ref <- referentiel %>% filter(id == input$demo_ind)
-  d <- base %>% filter(pays %in% input$demo_comp, id == input$demo_ind) %>%
-    mutate(info = paste0(pays, " — ", trimestre, " : ",
-                         formatC(valeur, format = "f", digits = 2, decimal.mark = ","), " ", unite))
-  g <- ggplot(d, aes(date, valeur, colour = pays, group = pays, text = info)) +
-    geom_line(linewidth = 1) +
-    scale_colour_manual(values = palette_pays, name = NULL) +
-    labs(x = NULL, y = ref$unite, title = paste(ref$indicateur, "— comparaison")) + theme_dash
-  if (ref$regle %in% c("plafond", "plancher", "intervalle"))
-    g <- g + geom_hline(yintercept = na.omit(c(ref$s1, ref$s2)), colour = pal$alerte, linetype = "dashed")
-  ggplotly(g, tooltip = "text") %>% layout(legend = list(orientation = "h", y = -0.12)) %>%
-    config(displayModeBar = FALSE)
-})
-```
-
-### Carré de Kaldor
-
-```{r}
-renderPlot(gg_kaldor(base, input$demo_pays, demo_date(), taille_texte = 4.5), res = 96)
-```
-
-Bilan {data-icon="fa-flag-checkered"}
-=====================================================================
-
-Row {data-height=120}
----------------------------------------------------------------------
-
-### Livrable
-```{r}
-valueBox("Prototype remis", caption = "Version fonctionnelle présentée à l'encadreur",
-         icon = "fa-check", color = pal$sain)
-```
-
-### Données
-```{r}
-valueBox("Synthétiques", caption = "Pas d'accès aux séries opérationnelles pendant le stage",
-         icon = "fa-database", color = pal$vigilance)
-```
-
-### Déploiement
-```{r}
-valueBox("À venir", caption = "Évolutions à prévoir avant une installation sur un serveur de la BEAC",
-         icon = "fa-server", color = pal$gris)
-```
-
-Row
----------------------------------------------------------------------
-
-### Apports
-1. **Centralisation** : un référentiel commun et une seule interface, au lieu de multiples classeurs.
-2. **Cohérence des règles** : un moteur de statuts explicite et reproductible à paramètres constants.
-3. **Traçabilité** : des lots d'import validés avant publication et une journalisation des opérations.
-4. **Diversité des restitutions** : graphiques, carré de Kaldor, comparaisons, exports.
-5. **Accessibilité** : l'assistant Iris et un guide contextuel.
-
-### Limites
-- **Données** : les jeux synthétiques ne disent rien de la conjoncture réelle.
-- **Seuils** : des paramètres du prototype, à valider institutionnellement.
-- **Consolidation régionale** : elle exige des poids et des séries auxiliaires homogènes.
-- **Infrastructure** : performance, sauvegarde, habilitations et exports restent à éprouver dans l'environnement cible.
-
-### Recommandations
-- Définir une procédure de mise à disposition des **séries autorisées**, avec leurs métadonnées et leurs règles de révision.
-- Faire **valider les seuils** par les services économiques compétents.
-- Confronter calculs et agrégations à des **cas de référence** connus.
-- Revoir **profils, mots de passe et sauvegardes** avec les équipes techniques.
-- Lancer une **phase pilote** avec quelques utilisateurs habilités.
-
-Exports {data-icon="fa-download"}
-=====================================================================
-
-Inputs {.sidebar data-width=300}
----------------------------------------------------------------------
-
-#### Synthèse Word / PowerPoint
-
-```{r}
-tagList(
-  selectizeInput("exp_pays", "Périmètres (1 à 4)", choices = choix_pays,
-                 selected = c("CEMAC", "Cameroun", "Gabon"), multiple = TRUE,
-                 options = list(maxItems = 4)),
-  selectizeInput("exp_ind", "Indicateurs (1 à 6)", choices = choix_ind,
-                 selected = c("pib", "inflation", "dette_pub", "reserves"), multiple = TRUE,
-                 options = list(maxItems = 6)),
-  selectInput("exp_trim", "Trimestre de référence", choices = rev(lib_trim), selected = tail(lib_trim, 1)),
-  radioButtons("exp_format", "Format", c("Word (.docx)" = "docx", "PowerPoint (.pptx)" = "pptx"), inline = TRUE),
-  downloadButton("dl_synthese", "Générer la synthèse", class = "btn-primary btn-block"),
-  tags$hr(),
-  downloadButton("dl_pdf_exports", "Rapport de stage (PDF)", class = "btn-outline-primary btn-block")
-)
-
-output$dl_synthese <- downloadHandler(
-  filename = function() paste0("Synthese_PRISME_", gsub("-", "", libelle_trim(as.Date(input$exp_trim))),
-                               ".", input$exp_format),
+output$dl_fiche <- downloadHandler(
+  filename = function() sprintf("Fiche_PRISME_%s_%d-%d.docx", gsub("[^A-Za-z]+", "_", iconv(input$f_entite, to = "ASCII//TRANSLIT")),
+                                 input$f_annees[1], input$f_annees[2]),
   content = function(file) {
-    validate(need(length(input$exp_pays) > 0 && length(input$exp_ind) > 0,
-                  "Choisissez au moins un périmètre et un indicateur."))
-    withProgress(message = "Génération du document…", value = .4, {
-      if (input$exp_format == "docx")
-        generer_docx(base, input$exp_pays, input$exp_ind, as.Date(input$exp_trim), file)
-      else
-        generer_pptx(base, input$exp_pays, input$exp_ind, as.Date(input$exp_trim), file)
-      setProgress(1)
+    validate(need(length(input$f_piliers) >= 1, "Choisir au moins un pilier."))
+    withProgress(message = "Génération de la fiche…", value = 0, {
+      generer_fiche(file, input$f_entite, PILIERS[PILIERS %in% input$f_piliers], input$f_annees, isTRUE(input$f_ia),
+                    progres = function(v, m) setProgress(value = v, detail = m))
     })
   })
-output$dl_pdf_exports <- downloadHandler(
-  filename = function() "Rapport_stage_NOUMEN_PRISME.pdf",
-  content  = function(file) file.copy(PDF_RAPPORT, file),
-  contentType = "application/pdf")
-```
-
-Column {data-width=620}
----------------------------------------------------------------------
-
-### Aperçu du tableau exporté (flextable)
-
-```{r}
-renderUI({
-  req(length(input$exp_pays) > 0, length(input$exp_ind) > 0)
-  div(style = "overflow:auto;",
-      htmltools_value(ft_statuts(base, input$exp_pays, input$exp_ind, as.Date(input$exp_trim))))
-})
-```
-
-Column {data-width=380}
----------------------------------------------------------------------
-
-### Contenu de la synthèse
-Le document généré contient :
-
-1. un **tableau des statuts** (flextable) coloré en vert, ambre ou rouge ;
-2. une **courbe d'évolution par indicateur**, en graphique natif Office (mschart) : clic droit, puis « Modifier les données » ;
-3. une **comparaison au dernier trimestre** en barres mschart, colorées selon le statut ;
-4. le **carré de Kaldor** des deux premiers périmètres (ggplot2, car mschart ne propose pas de radar).
-
-### Qui fait quoi ?
-
-```{r}
-qui <- tibble::tribble(
-  ~Package, ~Rôle,
-  "flexdashboard", "Structure du dashboard : pages, lignes, cartes, valueBox",
-  "shiny", "Interactivité : filtres, calculs réactifs, téléchargements",
-  "ggplot2 + plotly", "Graphiques à l'écran, interactifs (survol, zoom)",
-  "flextable", "Tableaux mis en forme, à l'écran et dans Word/PowerPoint",
-  "officer", "Création des fichiers .docx et .pptx",
-  "mschart", "Graphiques natifs Office, modifiables")
-flextable(qui) %>% theme_vanilla() %>% bold(j = 1) %>% color(j = 1, color = pal$navy) %>%
-  bg(part = "header", bg = pal$navy) %>% color(part = "header", color = "white") %>%
-  fontsize(size = 10, part = "all") %>% autofit() %>% htmltools_value()
 ```
